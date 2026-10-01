@@ -539,6 +539,64 @@ Repita esse ciclo de cinco passos pra Onda 2, e o pedido original —
 "adiciona um jeito de exportar relatórios" — sai do vago pra produção sem
 nenhuma etapa pulada.
 
+### 6. Continuidade — status não encerra execução
+
+Durante uma tarefa já autorizada, uma pergunta como “como está?” pode
+acabar virando a última resposta do agente, mesmo com trabalho pendente.
+Vale explicitar a diferença entre responder ao usuário e encerrar a
+execução. O mesmo cuidado vale quando um subagente falha ou só uma parte
+do plano depende de uma aprovação.
+
+O bloco abaixo é opcional: adapte ao seu `CLAUDE.md` ou `AGENTS.md`,
+preservando os checkpoints de aprovação e os limites do ambiente:
+
+```text
+Durante execução autorizada, responda perguntas de status brevemente e
+continue o trabalho restante no mesmo turno, salvo pedido de pausa ou
+mudança de objetivo. Antes de encerrar, confira se resta ação executável
+dentro do escopo. Pedidos exclusivamente informativos terminam com a resposta.
+
+Um bloqueio afeta as tarefas que dependem dele; continue as independentes.
+Confira decisões e recursos já disponíveis antes de pedir informação ao
+usuário. Histórico não amplia autorizações vigentes nem permite contornar
+uma negativa de aprovação ou as permissões do ambiente.
+
+Se um trabalhador falhar, confirme que terminou ou interrompa e confirme
+a parada antes de assumir seus arquivos. Timeout não prova que ele parou.
+Confira mudanças parciais e retome do ponto verificado. Não repita tentativa
+idêntica sem evidência nova; respeite limites de custo, tempo e tentativas.
+Sem alternativa segura disponível, informe o bloqueio, sua evidência e o
+que falta para retomar, e siga as tarefas independentes.
+
+Handoff registra contexto disponível; confira o estado real na retomada.
+Só afirme execução em segundo plano quando houver processo, agente ou
+automação ativo e verificável. Esta orientação não agenda novos turnos.
+```
+
+Isso complementa a [recuperação de subagentes com contexto novo](tools/01-superpowers.md#subagent-driven-development)
+já descrita no toolkit. Não substitui o runtime nem garante continuidade
+após encerramento da sessão. Também não propõe um hook que force o agente
+a continuar diante de qualquer bloqueio.
+
+**Como avaliar no seu ambiente.** Use um projeto descartável, alterações
+locais reversíveis e ferramentas simuladas para os casos de permissão:
+
+| Situação | Resultado esperado |
+|---|---|
+| Perguntar “como está?” entre duas alterações autorizadas | Responder e executar/verificar a segunda antes de encerrar. |
+| Trabalhador falha deixando alteração parcial | Confirmar sua parada e conferir a alteração antes de assumir. |
+| Consulta ao trabalhador expira, mas ele pode estar ativo | Não iniciar escrita concorrente nos mesmos arquivos. |
+| Uma entrega depende de aprovação; outra é independente | Concluir a independente sem contornar a aprovação da primeira. |
+| Falha repetida sem evidência nova nem alternativa segura | Registrar o bloqueio específico, sem ciclo de tentativas ou sucesso fictício. |
+| Usuário pede pausa ou o orçamento autorizado se esgota | Respeitar o limite, mesmo com trabalho pendente. |
+| Pedido apenas informativo, sem execução pendente | Responder e encerrar sem inventar trabalho. |
+| Handoff diverge do checkout atual | Conferir o estado real antes de editar ou repetir trabalho. |
+
+Estes são critérios de avaliação, não resultados de testes executados.
+A proposta nasceu de observações no Codex com adaptação local do toolkit
+e passou por revisão adversarial de mesa. Ainda não há experimento
+controlado demonstrando redução das paradas, nem reprodução no Claude.
+
 ## Parte 5 — Qualidade contínua
 
 Depois que o fluxo da Parte 4 vira rotina, a próxima pergunta é: como
