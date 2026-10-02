@@ -578,6 +578,41 @@ já descrita no toolkit. Não substitui o runtime nem garante continuidade
 após encerramento da sessão. Também não propõe um hook que force o agente
 a continuar diante de qualquer bloqueio.
 
+**Se a sessão continuar parando.** Um plano descreve as etapas; um objetivo
+define o resultado e como verificá-lo; o harness precisa oferecer um
+mecanismo ativo para iniciar o próximo turno. Escrever “continue até
+terminar” nas instruções não confirma que esse mecanismo existe ou está
+ativo. Registre um objetivo curto: resultado esperado, evidência de
+conclusão, fontes e ações permitidas, limites e o que impede a retomada.
+Passar nos testes de código só encerra o objetivo se esses testes cobrirem
+os critérios da entrega.
+
+No Codex, quando o usuário pedir execução persistente e a versão oferecer
+[Goals](https://developers.openai.com/cookbook/examples/codex/using_goals_in_codex),
+confirme o objetivo e seu estado na própria tarefa. Goals mantêm o objetivo
+entre turnos; a continuação depende do estado da tarefa e dos limites do
+runtime. Um plano ou uma promessa de continuar não ativa um Goal. Um Goal
+também não garante conclusão: pode parar por bloqueio, interrupção ou
+orçamento. Isso é uma opção específica do Codex, não um requisito do
+Claude Code ou do toolkit.
+
+Se houver acompanhamento autorizado, use o estado e a última ação
+observável para decidir; não envie “continue” a cada intervalo:
+
+| Estado observado | Ação do acompanhamento |
+|---|---|
+| Agente ou processo em execução, com progresso verificável | Deixar trabalhar. |
+| Tarefa ociosa, sem pausa ou limite atingido, com ação autorizada e independente disponível | Enviar à própria tarefa uma ação concreta, suas fontes e critério de verificação; depois conferir comando, alteração ou resultado real. Promessa de retomada não basta. |
+| Espera por pessoa, CI ou revisão | Bloquear só as dependências correspondentes; conferir se resta trabalho independente. Se só resta esperar, registrar o evento que permite retomar. |
+| Sem caminho permitido após conferir fontes e decisões disponíveis | Registrar bloqueio e evidência, sem declarar conclusão nem repetir tentativas sem novidade. |
+| Entrega verificada, pausa explícita ou limite atingido | Encerrar as intervenções; não reabrir a tarefa nem refazer entrega verificada. |
+
+Um acompanhamento recorrente exige autorização, frequência, prazo de
+encerramento e condição de aviso definidos. Reutilize um acompanhamento
+existente quando ele já cobre a necessidade; não crie outro escritor para
+os mesmos arquivos. O acompanhamento não altera autorizações, orçamento
+ou estado de pausa e só deve avisar quando houver mudança relevante.
+
 **Como avaliar no seu ambiente.** Use um projeto descartável, alterações
 locais reversíveis e ferramentas simuladas para os casos de permissão:
 
@@ -591,6 +626,8 @@ locais reversíveis e ferramentas simuladas para os casos de permissão:
 | Usuário pede pausa ou o orçamento autorizado se esgota | Respeitar o limite, mesmo com trabalho pendente. |
 | Pedido apenas informativo, sem execução pendente | Responder e encerrar sem inventar trabalho. |
 | Handoff diverge do checkout atual | Conferir o estado real antes de editar ou repetir trabalho. |
+| Após receber uma ação concreta, o agente só promete retomá-la | Manter a recuperação como não confirmada; não declarar execução sem ação observável. |
+| Testes de código passam, mas falta um critério da entrega | Continuar a parte executável ou registrar o bloqueio restante, sem marcar o objetivo como concluído. |
 
 Estes são critérios de avaliação, não resultados de testes executados.
 A proposta nasceu de observações no Codex com adaptação local do toolkit
